@@ -164,13 +164,34 @@ const initialMoviesData = [
   },
 ];
 
+const MOVIE_IDS_KEY = 'allMovieIds';
+const MOVIE_PREFIX = 'movie_';
+
 // Função para carregar filmes do AsyncStorage
 export async function loadMoviesData() {
   try {
-    const storedMovies = await AsyncStorage.getItem('moviesData');
-    if (storedMovies) {
-      return JSON.parse(storedMovies);
+    // Primeiro, tenta carregar a lista de IDs dos filmes
+    const storedMovieIds = await AsyncStorage.getItem(MOVIE_IDS_KEY);
+    
+    if (storedMovieIds) {
+      const movieIds = JSON.parse(storedMovieIds);
+      const movies = [];
+      
+      // Carrega cada filme individualmente
+      for (const id of movieIds) {
+        try {
+          const movieData = await AsyncStorage.getItem(`${MOVIE_PREFIX}${id}`);
+          if (movieData) {
+            movies.push(JSON.parse(movieData));
+          }
+        } catch (error) {
+          console.error(`Erro ao carregar filme ${id}:`, error);
+        }
+      }
+      
+      return movies;
     }
+    
     // Se não há dados salvos, usar dados iniciais e salvá-los
     await saveMoviesData(initialMoviesData);
     return initialMoviesData;
@@ -183,7 +204,16 @@ export async function loadMoviesData() {
 // Função para salvar filmes no AsyncStorage
 export async function saveMoviesData(movies) {
   try {
-    await AsyncStorage.setItem('moviesData', JSON.stringify(movies));
+    // Salva cada filme individualmente
+    const movieIds = [];
+    
+    for (const movie of movies) {
+      await AsyncStorage.setItem(`${MOVIE_PREFIX}${movie.id}`, JSON.stringify(movie));
+      movieIds.push(movie.id);
+    }
+    
+    // Salva a lista de IDs
+    await AsyncStorage.setItem(MOVIE_IDS_KEY, JSON.stringify(movieIds));
   } catch (error) {
     console.error('Erro ao salvar filmes:', error);
   }
@@ -202,8 +232,20 @@ export async function addMovies(newMovies) {
       return { success: false, message: 'Todos os filmes já estão na lista' };
     }
     
-    const updatedMovies = [...currentMovies, ...uniqueNewMovies];
-    await saveMoviesData(updatedMovies);
+    // Carrega IDs existentes
+    const storedMovieIds = await AsyncStorage.getItem(MOVIE_IDS_KEY);
+    const existingIds = storedMovieIds ? JSON.parse(storedMovieIds) : [];
+    
+    // Adiciona novos filmes individualmente
+    const newIds = [];
+    for (const movie of uniqueNewMovies) {
+      await AsyncStorage.setItem(`${MOVIE_PREFIX}${movie.id}`, JSON.stringify(movie));
+      newIds.push(movie.id);
+    }
+    
+    // Atualiza a lista de IDs
+    const updatedIds = [...existingIds, ...newIds];
+    await AsyncStorage.setItem(MOVIE_IDS_KEY, JSON.stringify(updatedIds));
     
     return { 
       success: true, 

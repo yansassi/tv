@@ -147,7 +147,25 @@ export default function SettingsScreen() {
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Limpar', style: 'destructive', onPress: async () => {
           try {
-            await AsyncStorage.clear();
+            // Remove todos os filmes individuais e a lista de IDs
+            const storedMovieIds = await AsyncStorage.getItem('allMovieIds');
+            if (storedMovieIds) {
+              const movieIds = JSON.parse(storedMovieIds);
+              for (const id of movieIds) {
+                await AsyncStorage.removeItem(`movie_${id}`);
+              }
+            }
+            await AsyncStorage.removeItem('allMovieIds');
+            
+            // Remove outros dados do app se necessário
+            const allKeys = await AsyncStorage.getAllKeys();
+            const keysToRemove = allKeys.filter(key => 
+              key.startsWith('movie_') || 
+              key === 'allMovieIds' || 
+              key === 'favorites'
+            );
+            await AsyncStorage.multiRemove(keysToRemove);
+            
             Alert.alert('Sucesso', 'Dados limpos com sucesso!');
           } catch (error) {
             Alert.alert('Erro', 'Falha ao limpar dados');
