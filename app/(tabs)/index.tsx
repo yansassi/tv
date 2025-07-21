@@ -71,6 +71,13 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Indicador temporário de contagem de filmes */}
+        <View style={styles.debugInfo}>
+          <Text style={styles.debugText}>
+            Total de filmes carregados: {moviesData.length}
+          </Text>
+        </View>
+
         {/* Header com filme em destaque */}
         {featuredMovie && (
           <View style={styles.featuredSection}>
@@ -199,5 +206,17 @@ const styles = StyleSheet.create({
   },
   categoriesSection: {
     paddingBottom: 100,
+  },
+  debugInfo: {
+    backgroundColor: '#ff6b6b',
+    padding: 12,
+    margin: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  debugText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

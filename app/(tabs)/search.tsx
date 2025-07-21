@@ -110,6 +110,13 @@ export default function SearchScreen() {
 
       {/* Resultados */}
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
+        {/* Indicadores temporários de contagem */}
+        <View style={styles.debugInfo}>
+          <Text style={styles.debugText}>
+            Total carregados: {moviesData.length} | Filtrados: {filteredMovies.length}
+          </Text>
+        </View>
+
         <Text style={styles.resultsCount}>
           {filteredMovies.length} filme{filteredMovies.length !== 1 ? 's' : ''} encontrado{filteredMovies.length !== 1 ? 's' : ''}
         </Text>
@@ -203,5 +210,17 @@ const styles = StyleSheet.create({
   gridMovieCard: {
     width: '48%',
     marginBottom: 16,
+  },
+  debugInfo: {
+    backgroundColor: '#ff6b6b',
+    padding: 12,
+    marginBottom: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  debugText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
