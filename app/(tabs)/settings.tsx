@@ -10,13 +10,64 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { Settings as SettingsIcon, Upload, Download, Trash2, Info } from 'lucide-react-native';
+import { Settings as SettingsIcon, Upload, Download, Trash2, Info, FileText } from 'lucide-react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseM3U, fetchM3UFromUrl } from '@/utils/m3uParser';
 import { addMovies, loadMoviesData, saveMoviesData } from '@/data/moviesData';
 
 export default function SettingsScreen() {
   const [m3uUrl, setM3uUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+
+  const importM3UFromFile = async () => {
+    setIsImporting(true);
+    
+    try {
+      // Abrir seletor de arquivos
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'text/plain',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        setIsImporting(false);
+        return;
+      }
+
+      // Ler o conteúdo do arquivo
+      const response = await fetch(result.assets[0].uri);
+      const m3uContent = await response.text();
+      
+      // Processar conteúdo M3U
+      const newMovies = parseM3U(m3uContent);
+      
+      if (newMovies.length === 0) {
+        Alert.alert('Erro', 'Nenhum filme encontrado no arquivo M3U');
+        return;
+      }
+      
+      // Adicionar filmes à lista
+      const result2 = await addMovies(newMovies);
+      
+      if (result2.success) {
+        Alert.alert('Sucesso', result2.message);
+      } else {
+        Alert.alert('Aviso', result2.message);
+      }
+      
+    } catch (error) {
+      console.error('Erro na importação do arquivo:', error);
+      Alert.alert(
+        'Erro na Importação',
+        'Ocorreu um problema ao processar o arquivo M3U.\n\n' +
+        `Detalhes: ${error.message}\n\n` +
+        'Verifique se o arquivo está no formato M3U correto.'
+      );
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const importM3U = async () => {
     if (!m3uUrl.trim()) {
@@ -46,6 +97,22 @@ export default function SettingsScreen() {
       
       if (newMovies.length === 0) {
         Alert.alert('Erro', 'Nenhum filme encontrado na lista M3U');
+        return;
+      }
+      
+      // Adicionar filmes à lista
+      const result = await addMovies(newMovies);
+      
+      if (result.success) {
+        Alert.alert('Sucesso', result.message);
+        setM3uUrl('');
+      } else {
+        Alert.alert('Aviso', result.message);
+      }
+      
+    } catch (error) {
+      console.error('Erro na importação:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
       if (errorMessage.includes('Network request failed')) {
@@ -66,27 +133,6 @@ export default function SettingsScreen() {
           `Detalhes: ${errorMessage}\n\n` +
           'Verifique se o arquivo M3U está no formato correto.'
         );
-      }
-        setM3uUrl('');
-      } else {
-        Alert.alert('Aviso', result.message);
-      }
-      
-    } catch (error) {
-      console.error('Erro na importação:', error);
-      
-      // Verificar se é erro de rede
-      if (error.message && error.message.includes('Network request failed')) {
-        Alert.alert(
-          'Erro de Conexão', 
-          'Não foi possível conectar à internet ou acessar a URL fornecida.\n\n' +
-          'Verifique:\n' +
-          '• Sua conexão com a internet\n' +
-          '• Se a URL está correta e acessível\n' +
-          '• Se o servidor está funcionando'
-        );
-      } else {
-        Alert.alert('Erro', `Falha ao importar lista: ${error.message}`);
       }
     } finally {
       setIsImporting(false);
@@ -146,6 +192,17 @@ export default function SettingsScreen() {
               {isImporting ? 'Importando...' : 'Importar Lista'}
             </Text>
           </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.secondaryButton, isImporting && styles.primaryButtonDisabled]} 
+            onPress={importM3UFromFile}
+            disabled={isImporting}
+          >
+            <FileText size={20} color="#00d4ff" />
+            <Text style={styles.secondaryButtonText}>
+              {isImporting ? 'Importando...' : 'Importar do Arquivo'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Opções */}
@@ -177,11 +234,12 @@ export default function SettingsScreen() {
         <View style={styles.instructionsSection}>
           <Text style={styles.instructionsTitle}>Como usar:</Text>
           <Text style={styles.instructionsText}>
-            1. Cole a URL da sua lista M3U no campo acima{'\n'}
-            2. Toque em "Importar Lista" para carregar os filmes{'\n'}
-            3. Navegue pelas categorias na tela inicial{'\n'}
-            4. Use a busca para encontrar filmes específicos{'\n'}
-            5. Adicione filmes aos favoritos tocando no coração
+            1. Cole a URL da sua lista M3U no campo acima OU{'\n'}
+            2. Toque em "Importar do Arquivo" para selecionar um arquivo .txt/.m3u{'\n'}
+            3. Toque em "Importar Lista" para carregar os filmes{'\n'}
+            4. Navegue pelas categorias na tela inicial{'\n'}
+            5. Use a busca para encontrar filmes específicos{'\n'}
+            6. Adicione filmes aos favoritos tocando no coração
           </Text>
         </View>
       </ScrollView>
@@ -250,6 +308,23 @@ const styles = StyleSheet.create({
   },
   primaryButtonDisabled: {
     opacity: 0.6,
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#00d4ff',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 12,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00d4ff',
   },
   optionButton: {
     flexDirection: 'row',
