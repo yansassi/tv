@@ -1,7 +1,47 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { parseM3U } from '@/utils/m3uParser';
+
+// M3U content provided by user
+const m3uContent = `#EXTINF:-1 tvg-id="" tvg-name="#PartiuFama: Cancelado no Amor - 2022" tvg-logo="" group-title="Filmes | Comedia",#PartiuFama: Cancelado no Amor - 2022
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/91070.mp4
+#EXTINF:-1 tvg-id="" tvg-name="#SeAcabó: Diário das Campeãs (2024)" tvg-logo="" group-title=" Filmes | Lançamentos 2024",#SeAcabó: Diário das Campeãs (2024)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/222959.mp4
+#EXTINF:-1 tvg-id="" tvg-name="(500) Dias com Ela (2009)" tvg-logo="" group-title="Filmes | Comedia",(500) Dias com Ela (2009)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/166538.mp4
+#EXTINF:-1 tvg-id="" tvg-name="(Re)Nascer (2023)" tvg-logo="" group-title="Filmes | Terror",(Re)Nascer (2023)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/189826.mp4
+#EXTINF:-1 tvg-id="" tvg-name="+ Velozes + Furiosos" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",+ Velozes + Furiosos
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/88164.mp4
+#EXTINF:-1 tvg-id="" tvg-name="...E o Vento Levou (1939)" tvg-logo="" group-title="Filmes | Drama/Suspense/Romance",...E o Vento Levou (1939)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/81610.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 - Permissão para Matar (1989)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 - Permissão para Matar (1989)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135577.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 A Serviço Secreto de Sua Majestade (1969)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 A Serviço Secreto de Sua Majestade (1969)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135557.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Cassino Royale (2006)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Cassino Royale (2006)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/74801.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra GoldenEye (1995)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra GoldenEye (1995)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/941147.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra Goldfinger (1964)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra Goldfinger (1964)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135552.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra Octopussy (1983)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra Octopussy (1983)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135574.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra Spectre (2015)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra Spectre (2015)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/73050.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra o Foguete da Morte (1979)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra o Foguete da Morte (1979)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135572.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Contra o Homem com a Pistola de Ouro (1974)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Contra o Homem com a Pistola de Ouro (1974)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/135570.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Operação Skyfall (2012)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Operação Skyfall (2012)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/48343.mp4
+#EXTINF:-1 tvg-id="" tvg-name="007 Quantum of Solace (2008)" tvg-logo="" group-title="Filmes | Acao/Aventura/Guerra",007 Quantum of Solace (2008)
+http://play.biturl.vip/movie/yansassi/k3vlelikdla/74802.mp4`;
+
+// Parse M3U content and combine with existing movies
+const parsedMovies = parseM3U(m3uContent);
 
 // Dados dos filmes baseados nos links fornecidos
-const initialMoviesData = [
+const existingMoviesData = [
   {
     id: '1',
     title: '#PartiuFama: Cancelado no Amor',
@@ -163,6 +203,9 @@ const initialMoviesData = [
     poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg',
   },
 ];
+
+// Combine existing movies with parsed M3U movies
+const initialMoviesData = [...existingMoviesData, ...parsedMovies];
 
 const MOVIE_IDS_KEY = 'allMovieIds';
 const MOVIE_PREFIX = 'movie_';
